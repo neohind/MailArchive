@@ -94,7 +94,9 @@ namespace MailArchive
                         sEndDate = message.Date.ToString("yyyyMMddHHmmss");
                         Console.WriteLine($"Downloading message {i + 1}/{messageCount}: {message.Subject}");
                         message.WriteTo(filePath);
+                        client.DeleteMessage(i);
                     }
+                    client.Disconnect(true);
                     Console.WriteLine("All messages have been downloaded successfully.");
                     CompressMailFiles(emlPath, sStartDate, sEndDate);
                 }
