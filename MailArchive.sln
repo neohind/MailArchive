@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MailArchive", "MailArchive\MailArchive.csproj", "{6A1B579E-9E39-4D54-8FB4-40E6633B4652}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MailAchiveUi", "MailAchiveUi\MailAchiveUi.csproj", "{162EE61D-E3E4-4CA1-9222-9A9EBC68D15B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +17,10 @@ Global
 		{6A1B579E-9E39-4D54-8FB4-40E6633B4652}.Debug|x64.Build.0 = Debug|x64
 		{6A1B579E-9E39-4D54-8FB4-40E6633B4652}.Release|x64.ActiveCfg = Release|x64
 		{6A1B579E-9E39-4D54-8FB4-40E6633B4652}.Release|x64.Build.0 = Release|x64
+		{162EE61D-E3E4-4CA1-9222-9A9EBC68D15B}.Debug|x64.ActiveCfg = Debug|x64
+		{162EE61D-E3E4-4CA1-9222-9A9EBC68D15B}.Debug|x64.Build.0 = Debug|x64
+		{162EE61D-E3E4-4CA1-9222-9A9EBC68D15B}.Release|x64.ActiveCfg = Release|x64
+		{162EE61D-E3E4-4CA1-9222-9A9EBC68D15B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
