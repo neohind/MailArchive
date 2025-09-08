@@ -7,22 +7,51 @@ namespace MailAchiveUi
 {
     public partial class FrmMain : Form
     {
-        Settings settings = Settings.Instance;
+        private Settings settings = Settings.Instance;
+        private int m_nCount = 0;
 
         public FrmMain()
         {
             InitializeComponent();
+
+            txtUrl.Text = settings.MailServer;
+            txtPort.Text = settings.MailServerPort.ToString();
+            txtId.Text = settings.MailUser;
+            txtPassword.Text = settings.MailPassword;
+            chkUseSSL.Checked = settings.MailServerUseSsl;
+            progressBar1.Value = 0;
+            progressBar1.Minimum = 0;
+            progressBar1.Maximum = 100;
+            txtResultPath.Text = settings.ResultPath;
+
+            timer1.Start();
         }
 
         private async void btnLoad_Click(object sender, EventArgs e)
         {
+            Settings.Instance.MailServer = txtUrl.Text.Trim();
+            Settings.Instance.MailServerPort = int.TryParse(txtPort.Text.Trim(), out int port) ? port : 0;
+            Settings.Instance.MailServerUseSsl = chkUseSSL.Checked;
+            Settings.Instance.MailUser = txtId.Text.Trim();
+            Settings.Instance.MailPassword = txtPassword.Text.Trim();
+            Settings.Instance.Save();
+
+            if(txtUrl.Text.Trim() == string.Empty ||
+               txtPort.Text.Trim() == string.Empty ||
+               txtId.Text.Trim() == string.Empty ||
+               txtPassword.Text.Trim() == string.Empty)
+            {
+                MessageBox.Show("모든 필드를 입력해주세요.");
+                return;
+            }
+
+
             var emails = new List<string>();
             List<MimeMessage> aryAllMessages = new List<MimeMessage>();
 
-            if(!Directory.Exists(".\\Temp"))
-            {
-                Directory.CreateDirectory(".\\Temp");
-            }
+            if (!Directory.Exists(settings.ResultPath))            
+                Directory.CreateDirectory(settings.ResultPath);
+            
 
             using (var client = new ImapClient())
             {
@@ -38,7 +67,7 @@ namespace MailAchiveUi
 
 
                     // 모든 폴더 탐색 및 이메일 가져오기
-                    var personalNamespace = client.PersonalNamespaces[0];                    
+                    var personalNamespace = client.PersonalNamespaces[0];
                     var rootFolder = client.GetFolder(personalNamespace);
                     Console.WriteLine("사용 가능한 폴더 목록:");
 
@@ -50,17 +79,17 @@ namespace MailAchiveUi
                     {
                         var folder = client.GetFolder(sFolderName);
                         await FetchEmailsFromFolderAsync(folder, aryAllMessages);
-                        
-                    }
-                    
 
+                    }
                     await client.DisconnectAsync(true);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"IMAP4 연결 오류: {ex.Message}");
+                    WriteLog($"IMAP4 연결 오류: {ex.Message}");
                 }
             }
+            timer1.Stop();
+            progressBar1.Value = m_nCount;
         }
 
         private int GetFolderFullNames(IMailFolder folder, List<string> folderNames)
@@ -69,14 +98,14 @@ namespace MailAchiveUi
             if (!string.IsNullOrWhiteSpace(folder.FullName))
             {
                 folderNames.Add(folder.FullName);
-                //folder.OpenAsync(FolderAccess.ReadOnly).Wait();
-                //nCount = folder.Count();
-                
-            }            
+                folder.OpenAsync(FolderAccess.ReadOnly).Wait();
+                nCount = folder.Count;
+            }
+            progressBar1.Maximum = nCount;
 
             foreach (var subFolder in folder.GetSubfolders(false))
             {
-                nCount +=GetFolderFullNames(subFolder, folderNames);
+                nCount += GetFolderFullNames(subFolder, folderNames);
             }
 
             return nCount;
@@ -90,19 +119,20 @@ namespace MailAchiveUi
 
             int nCount = folder.Count;
 
-            WriteLog($"[Change Folder] :  {folder.FullName}");            
-            string sBaseFolderPath = ".\\Temp\\" + folder.FullName.Replace(".", "\\");
-            if(!Directory.Exists(sBaseFolderPath))
+            WriteLog($"[Change Folder] :  {folder.FullName}");
+            string sBaseFolderPath = Path.Combine(settings.ResultPath, folder.FullName.Replace(".", "\\"));
+            if (!Directory.Exists(sBaseFolderPath))
                 Directory.CreateDirectory(sBaseFolderPath);
 
             // 현재 폴더의 이메일 가져오기
             for (int i = 0; i < nCount; i++)
             {
+                m_nCount++;
                 try
                 {
                     var message = await folder.GetMessageAsync(i);
                     string? sSubject = message.Subject;
-                    WriteLog($"({i+1}/{nCount}) {sSubject}");
+                    WriteLog($"({i + 1}/{nCount}) {sSubject}");
 
                     if (sSubject == null)
                         sSubject = string.Empty;
@@ -127,9 +157,11 @@ namespace MailAchiveUi
                 catch (Exception ex)
                 {
                     WriteLog("ERROR! " + ex.Message);
-                }                
-            }            
+                }
+            }
         }
+
+
 
         private delegate void WriteLogHandler(string sMessage);
 
@@ -141,6 +173,11 @@ namespace MailAchiveUi
             {
                 txtLogs.AppendText(sMessage + Environment.NewLine);
             }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            progressBar1.Value = m_nCount;
         }
     }
 }

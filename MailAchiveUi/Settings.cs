@@ -31,7 +31,11 @@ namespace MailAchiveUi
         [JsonIgnore]
         public bool IsSucess { get; private set; } = false;
 
-        
+        [JsonPropertyName("ResultPath")]
+        public string ResultPath { get; set; } = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "Results");
+
+
         private static string ConfigFilePath = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory, "settings.json");
 
